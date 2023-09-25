@@ -1,0 +1,8 @@
+# Default setting for a new host
+[newhost:vars]
+ansible_user=homelab
+ansible_become=yes
+ansible_become_method=sudo
+
+[newhost]
+10.11.1.253

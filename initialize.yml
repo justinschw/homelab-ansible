@@ -1,0 +1,5 @@
+---
+- hosts: newhost
+  become: yes
+  roles:
+    - user-setup

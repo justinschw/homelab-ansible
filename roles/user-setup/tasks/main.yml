@@ -1,0 +1,41 @@
+---
+# This is a playbook that sets up the homelab user and configures the network.
+- name: Install sudo
+  ansible.builtin.package:
+    name: sudo
+    state: present
+
+- name: Add the homelab user
+  ansible.builtin.user:
+    name: homelab
+    comment: Homelab User
+    groups: homelab, sudo
+
+- name: Copy SSH key
+  ansible.builtin.authorized_key:
+    user: homelab
+    state: present
+    key: "{{ sshPubKey }}"
+
+- name: Assign new hostname
+  ansible.builtin.template:
+    src: hostname
+    dest: /etc/hostname
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Assign new management IP
+  ansible.builtin.template:
+    src: interfaces
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: Async restart of networking.service 
+  shell: "sleep 1; systemctl restart networking.service &"
+  args:
+    executable: /bin/bash
+  async: 100
+  poll: 0
