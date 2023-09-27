@@ -97,6 +97,3 @@
   community.general.iptables_state:
     state: saved
     path: /etc/iptables/rules.v4
-
-# TODO: configure firewall (allow port 22 on mgmt, established on LAB) and persist rules
-# TODO: disable/uninstall all unnecessary services
