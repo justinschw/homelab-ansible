@@ -5,6 +5,7 @@
   lineinfile:
     path: /root/.bashrc
     line: "HISTFILESIZE=0"
+    state: present
 
 - name: Clear root bash history
   shell: "dd if=/dev/null of=/root/.bash_history"
@@ -74,6 +75,12 @@
     name: iptables-persistent
     state: present
 
+- name: Allow loopback traffic
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+
 - name: Allow related and established connections
   ansible.builtin.iptables:
     chain: INPUT
@@ -87,6 +94,24 @@
     protocol: tcp
     destination_port: 22
     jump: ACCEPT
+
+- name: Don't forward traffic from MGMT to LAN
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: "{{ mgmtInterface }}"
+    out_interface: "{{ egressInterface }}"
+    protocol: tcp
+    destination_port: 22
+    jump: DROP
+
+- name: Don't forward traffic from LAN to MGMT
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: "{{ egressInterface }}"
+    out_interface: "{{ mgmtInterface }}"
+    protocol: tcp
+    destination_port: 22
+    jump: DROP
 
 - name: Deny everything else
   ansible.builtin.iptables:

@@ -1,4 +1,5 @@
 defaultUser: homelab
+defaultUserHome: /home/homelab
 defaultUserComment: "Homelab User"
 defaultUserGroups: homelab, sudo
 

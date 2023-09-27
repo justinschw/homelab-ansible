@@ -1,0 +1,7 @@
+---
+
+- hosts: k3s
+  become: yes
+  roles:
+    - hardening
+    - k3s

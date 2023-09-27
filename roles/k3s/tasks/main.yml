@@ -1,0 +1,62 @@
+- name: Allow 6443
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ mgmtInterface }}"
+    protocol: tcp
+    destination_port: 6443
+    jump: ACCEPT
+
+- name: Allow 10250
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ mgmtInterface }}"
+    protocol: tcp
+    destination_port: 10250
+    jump: ACCEPT
+
+- name: Save iptables rules
+  community.general.iptables_state:
+    state: saved
+    path: /etc/iptables/rules.v4
+
+- name: Check if kubectl is installed
+  stat:
+    path: /usr/local/bin/kubectl
+  register: kubectl_exe
+
+- name: install curl
+  apt:
+    name: curl
+    state: present
+
+- name: Download k3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s-install.sh
+    mode: u=xwr,g=xr,o=xr
+  when: kubectl_exe.stat.exists == False
+
+- name: Run install script
+  shell: "/tmp/k3s-install.sh || true"
+  when: kubectl_exe.stat.exists == False
+
+- name: create kubeconfig dir for default user
+  file:
+    path: /home/{{ defaultUser }}/.kube
+    state: directory
+
+- name: Setup kubeconfig for default user
+  shell: "cp /etc/rancher/k3s/k3s.yaml /home/{{ defaultUser }}/.kube/config"
+
+- name: Change file ownership, group and permissions
+  ansible.builtin.file:
+    path: /home/{{ defaultUser }}/.kube/config
+    owner: "{{ defaultUser }}"
+    group: "{{ defaultUser }}"
+    mode: 'u=rw'
+
+- name: Set KUBECONFIG for default user
+  lineinfile:
+    path: /home/{{ defaultUser }}/.bashrc
+    line: "export KUBECONFIG=$HOME/.kube/config"
+    state: present

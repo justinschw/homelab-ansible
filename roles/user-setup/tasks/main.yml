@@ -7,9 +7,9 @@
 
 - name: Add the homelab user
   ansible.builtin.user:
-    name: {{ defaultUser }}
-    comment: {{ defaultUserComment }}
-    groups: {{ defaultUserGroups }}
+    name: "{{ defaultUser }}"
+    comment: "{{ defaultUserComment }}"
+    groups: "{{ defaultUserGroups }}"
 
 - name: Copy SSH key
   ansible.builtin.authorized_key:
