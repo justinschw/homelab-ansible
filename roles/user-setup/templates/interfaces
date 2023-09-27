@@ -8,11 +8,11 @@ auto lo
 iface lo inet loopback
 
 # The primary network interface
-allow-hotplug enX0
-iface enX0 inet dhcp
+allow-hotplug {{ egressInterface }}
+iface {{ egressInterface }} inet dhcp
 
 # The control-plane network address
-allow-hotplug enX1
-iface enX1 inet static
+allow-hotplug {{ mgmtInterface }}
+iface {{ mgmtInterface }} inet static
     address {{ assignedMgmtIp }}
-    netmask 255.255.255.0
+    netmask {{ mgmtNetmask }}

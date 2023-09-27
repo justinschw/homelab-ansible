@@ -16,26 +16,26 @@
 
 - name: Disable homelab user bash history
   lineinfile:
-    path: /home/homelab/.bashrc
+    path: /home/{{ defaultUser }}/.bashrc
     line: "HISTFILESIZE=0"
     state: present
 
 - name: Remove bash history size
   lineinfile:
-    path: /home/homelab/.bashrc
+    path: /home/{{ defaultUser }}/.bashrc
     regexp: "^HISTSIZE.*$"
     state: absent
 
 - name: Remove bash history file size
   lineinfile:
-    path: '/home/homelab/.bashrc'
+    path: '/home/{{ defaultUser }}/.bashrc'
     regexp: '^(.*)HISTFILESIZE(.*)$'
     line: 'HISTFILESIZE=0'
 
 # TODO: ensure root SSH login is disabled
 
 - name: Clear bash history
-  shell: 'dd if=/dev/null of=/home/homelab/.bashrc'
+  shell: 'dd if=/dev/null of=/home/{{ defaultUser }}/.bashrc'
 
 - name: Disable password authentication
   lineinfile:
@@ -68,6 +68,35 @@
   ansible.builtin.package:
     name: iptables
     state: present
+
+- name: Install iptables-persistent
+  ansible.builtin.package:
+    name: iptables-persistent
+    state: present
+
+- name: Allow related and established connections
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+
+- name: Allow SSH on mgmt
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ mgmtInterface }}"
+    protocol: tcp
+    destination_port: 22
+    jump: ACCEPT
+
+- name: Deny everything else
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: DROP
+
+- name: Save iptables rules
+  community.general.iptables_state:
+    state: saved
+    path: /etc/iptables/rules.v4
 
 # TODO: configure firewall (allow port 22 on mgmt, established on LAB) and persist rules
 # TODO: disable/uninstall all unnecessary services

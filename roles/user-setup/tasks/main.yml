@@ -7,9 +7,9 @@
 
 - name: Add the homelab user
   ansible.builtin.user:
-    name: homelab
-    comment: Homelab User
-    groups: homelab, sudo
+    name: {{ defaultUser }}
+    comment: {{ defaultUserComment }}
+    groups: {{ defaultUserGroups }}
 
 - name: Copy SSH key
   ansible.builtin.authorized_key:
@@ -24,6 +24,12 @@
     owner: root
     group: root
     mode: u=rw,g=r,o=r
+
+- name: Add hostname to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.1.1 {{ assignedHostname }}"
+    state: present
 
 - name: Assign new management IP
   ansible.builtin.template:

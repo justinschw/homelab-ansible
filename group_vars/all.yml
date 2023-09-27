@@ -1,0 +1,11 @@
+defaultUser: homelab
+defaultUserComment: "Homelab User"
+defaultUserGroups: homelab, sudo
+
+egressInterface: enX0
+egressNetwork: 10.12.0.0
+egressNetmask: 255.255.255.0
+
+mgmtInterface: enX1
+mgmtNetwork: 10.11.0.0
+mgmtNetmask: 255.255.255.0
