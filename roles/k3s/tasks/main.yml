@@ -37,7 +37,7 @@
   when: kubectl_exe.stat.exists == False
 
 - name: Run install script
-  shell: "/tmp/k3s-install.sh || true"
+  shell: "INSTALL_K3S_EXEC='server --bind-address {{ assignedMgmtIp }} --advertise-address {{ assignedMgmtIp }} --node-name {{ assignedHostname }} --node-ip {{ assignedMgmtIp }} --node-external-ip {{ assignedMgmtIp }} --tls-san {{ assignedMgmtIp }} --cluster-init' /tmp/k3s-install.sh || true"
   when: kubectl_exe.stat.exists == False
 
 - name: create kubeconfig dir for default user
