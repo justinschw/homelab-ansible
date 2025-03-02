@@ -72,7 +72,7 @@
 
 - name: Install iptables-persistent
   ansible.builtin.package:
-    name: iptables-persistent
+    name: iptables-services
     state: present
 
 - name: Allow loopback traffic
