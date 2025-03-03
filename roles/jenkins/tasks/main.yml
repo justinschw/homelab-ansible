@@ -1,4 +1,9 @@
 ---
+- name: Install java
+  ansible.builtin.package:
+    name: java
+    state: present
+
 - name: Download Jenkins repo
   ansible.builtin.get_url:
     url: "{{ jenkinsRepoUrl }}"
@@ -9,8 +14,16 @@
     state: present
     key: "{{ jenkinsRepoKeyUrl }}"
 
-- name: Update repo
+- name: Install Jenkins
   ansible.builtin.package:
     name: jenkins
     state: present
     update_cache: true
+
+# TODO: https
+- name: Enable Jenkins access from MGMT
+  ansible.posix.firewalld:
+    zone: "mgmt"
+    service: ssh
+    permanent: true
+    state: enabled
