@@ -24,7 +24,6 @@
 - name: Enable Jenkins access from MGMT
   ansible.posix.firewalld:
     zone: "mgmt"
-    port: 8080
-    protocol: tcp
+    port: 8080/tcp
     permanent: true
     state: enabled
