@@ -25,5 +25,6 @@
   ansible.posix.firewalld:
     zone: "mgmt"
     port: 8080
+    protocol: tcp
     permanent: true
     state: enabled
