@@ -1,0 +1,16 @@
+---
+- name: Download Jenkins repo
+  ansible.builtin.get_url:
+    url: {{ jenkinsRepoUrl }}
+    dest: /etc/yum.repos.d/jenkins.repo
+
+- name: Install Jenkins repo key
+  rpm_key:
+    state: present
+    key: {{ jenkinsRepoKeyUrl }}
+
+- name: Update repo
+  ansible.builtin.package:
+    name: jenkins
+    state: present
+    update_cache: true

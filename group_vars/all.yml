@@ -10,3 +10,6 @@ egressNetmask: 255.255.255.0
 mgmtInterface: enX1
 mgmtNetwork: 10.11.0.0
 mgmtNetmask: 255.255.255.0
+
+jenkinsRepoUrl: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+jenkinsRepoKeyUrl: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
