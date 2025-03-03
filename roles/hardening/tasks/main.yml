@@ -65,60 +65,66 @@
     - net.ipv6.conf.default.disable_ipv6
     - net.ipv6.conf.lo.disable_ipv6
 
-- name: Install iptables
+- name: Install firewalld
   ansible.builtin.package:
-    name: iptables
+    name: firewalld
     state: present
 
-- name: Install iptables-persistent
-  ansible.builtin.package:
-    name: iptables-services
-    state: present
+- name: Create MGMT zone
+  ansible.posix.firewalld:
+    zone: "mgmt"
+    state: "present"
+    permanent: true
 
-- name: Allow loopback traffic
-  ansible.builtin.iptables:
-    chain: INPUT
-    in_interface: lo
-    jump: ACCEPT
+- name: Add MGMT interface to new zone
+  ansible.posix.firewalld:
+    zone: "mgmt"
+    interface: "{{ mgmtInterface }}"
+    permanent: true
+    state: enabled
 
-- name: Allow related and established connections
-  ansible.builtin.iptables:
-    chain: INPUT
-    ctstate: ESTABLISHED,RELATED
-    jump: ACCEPT
+- name: Enable ssh for mgmt
+  ansible.posix.firewalld:
+    zone: "mgmt"
+    service: ssh
+    permanent: true
+    state: enabled
 
-- name: Allow SSH on mgmt
-  ansible.builtin.iptables:
-    chain: INPUT
-    in_interface: "{{ mgmtInterface }}"
-    protocol: tcp
-    destination_port: 22
-    jump: ACCEPT
+- name: Enable ICMP on mgmt
+  block:
+  - ansible.posix.firewalld:
+      zone: "mgmt"
+      state: enabled
+      permanent: true
+      icmp_block_inversion: true
 
-- name: Don't forward traffic from MGMT to LAN
-  ansible.builtin.iptables:
-    chain: FORWARD
-    in_interface: "{{ mgmtInterface }}"
-    out_interface: "{{ egressInterface }}"
-    protocol: tcp
-    destination_port: 22
-    jump: DROP
+  - ansible.posix.firewalld:
+      zone: "mgmt"
+      state: enabled
+      permanent: true
+      icmp_block: echo-request
 
-- name: Don't forward traffic from LAN to MGMT
-  ansible.builtin.iptables:
-    chain: FORWARD
-    in_interface: "{{ egressInterface }}"
-    out_interface: "{{ mgmtInterface }}"
-    protocol: tcp
-    destination_port: 22
-    jump: DROP
+  - ansible.posix.firewalld:
+      zone: "mgmt"
+      state: enabled
+      permanent: true
+      icmp_block: echo-reply
 
-- name: Deny everything else
-  ansible.builtin.iptables:
-    chain: INPUT
-    policy: DROP
+  - name: "Default DROP on mgmt"
+    ansible.posix.firewalld:
+      zone: "mgmt"
+      state: present
+      permanent: true
+      target: DROP
 
-- name: Save iptables rules
-  community.general.iptables_state:
-    state: saved
-    path: /etc/iptables/rules.v4
+- name: Disable ssh for public
+  ansible.posix.firewalld:
+    zone: "public"
+    service: ssh
+    permanent: true
+    state: disabled
+
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
