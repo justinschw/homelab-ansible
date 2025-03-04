@@ -27,3 +27,8 @@
     port: 8080/tcp
     permanent: true
     state: enabled
+
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded

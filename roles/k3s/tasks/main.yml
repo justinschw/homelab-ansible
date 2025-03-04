@@ -1,33 +1,33 @@
 - name: Allow 6443
-  ansible.builtin.iptables:
-    chain: INPUT
-    in_interface: "{{ mgmtInterface }}"
-    protocol: tcp
-    destination_port: 6443
-    jump: ACCEPT
+  ansible.posix.firewalld:
+    zone: "mgmt"
+    port: 6443/tcp
+    permanent: true
+    state: enabled
 
 - name: Allow 10250
-  ansible.builtin.iptables:
-    chain: INPUT
-    in_interface: "{{ mgmtInterface }}"
-    protocol: tcp
-    destination_port: 10250
-    jump: ACCEPT
+  ansible.posix.firewalld:
+    zone: "mgmt"
+    port: 10250/tcp
+    permanent: true
+    state: enabled
 
-- name: Save iptables rules
-  community.general.iptables_state:
-    state: saved
-    path: /etc/iptables/rules.v4
+
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
 
 - name: Check if kubectl is installed
   stat:
     path: /usr/local/bin/kubectl
   register: kubectl_exe
 
-- name: install curl
-  apt:
+- name: Install curl
+  ansible.builtin.package:
     name: curl
     state: present
+    update_cache: true
 
 - name: Download k3s install script
   ansible.builtin.get_url:
