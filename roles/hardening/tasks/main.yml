@@ -70,6 +70,11 @@
     name: firewalld
     state: present
 
+- name: Start firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+
 - name: Create MGMT zone
   ansible.posix.firewalld:
     zone: "mgmt"
@@ -77,11 +82,7 @@
     permanent: true
 
 - name: Add MGMT interface to new zone
-  ansible.posix.firewalld:
-    zone: "mgmt"
-    interface: "{{ mgmtInterface }}"
-    permanent: true
-    state: enabled
+  ansible.builtin.shell: "firewall-cmd --permanent --zone=mgmt --add-interface={{ mgmtInterface }}"
 
 - name: Enable ssh for mgmt
   ansible.posix.firewalld:
