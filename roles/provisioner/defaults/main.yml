@@ -1,0 +1,51 @@
+---
+# Default variables for the provisioner role
+
+# Proxmox user name
+provisioner_user: "provisioner"
+
+# User's realm (typically 'pve' for Proxmox VE)
+provisioner_realm: "pve"
+
+# Full user identifier
+provisioner_userid: "{{ provisioner_user }}@{{ provisioner_realm }}"
+
+# API token name
+provisioner_token_name: "automation"
+
+# Full token identifier
+provisioner_token_id: "{{ provisioner_userid }}!{{ provisioner_token_name }}"
+
+# Local directory to store the API token
+token_storage_dir: "{{ lookup('env', 'HOME') }}/.proxmox"
+
+# Local file path for storing the API token
+token_storage_file: "{{ token_storage_dir }}/provisioner_token"
+
+# Proxmox user comment
+provisioner_comment: "Automation user for Packer and Terraform"
+
+# User password (optional - tokens are preferred for API access)
+# Leave empty to disable password authentication
+provisioner_password: ""
+
+# Permissions for the provisioner user
+# These permissions allow full VM and container management
+provisioner_privileges:
+  - "VM.Allocate"
+  - "VM.Clone"
+  - "VM.Config.CDROM"
+  - "VM.Config.CPU"
+  - "VM.Config.Cloudinit"
+  - "VM.Config.Disk"
+  - "VM.Config.HWType"
+  - "VM.Config.Memory"
+  - "VM.Config.Network"
+  - "VM.Config.Options"
+  - "VM.Monitor"
+  - "VM.Audit"
+  - "VM.PowerMgmt"
+  - "Datastore.AllocateSpace"
+  - "Datastore.Audit"
+  - "Sys.Audit"
+  - "Pool.Allocate"

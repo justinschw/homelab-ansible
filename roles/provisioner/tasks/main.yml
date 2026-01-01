@@ -1,0 +1,110 @@
+---
+# Main tasks file for provisioner role
+
+- name: Create provisioner user in Proxmox
+  ansible.builtin.command:
+    cmd: >
+      pveum user add {{ provisioner_userid }}
+      --comment "{{ provisioner_comment }}"
+      {% if provisioner_password %}
+      --password {{ provisioner_password }}
+      {% endif %}
+  register: user_creation
+  failed_when:
+    - user_creation.rc != 0
+    - "'already exists' not in user_creation.stderr"
+  changed_when: user_creation.rc == 0
+
+- name: Create PVEVMAdmin role if it doesn't exist
+  ansible.builtin.command:
+    cmd: >
+      pveum role add PVEVMAdmin
+      -privs "{{ provisioner_privileges | join(',') }}"
+  register: role_creation
+  failed_when:
+    - role_creation.rc != 0
+    - "'already exists' not in role_creation.stderr"
+  changed_when: role_creation.rc == 0
+
+- name: Assign PVEVMAdmin role to provisioner user on / path
+  ansible.builtin.command:
+    cmd: >
+      pveum acl modify /
+      --roles PVEVMAdmin
+      --users {{ provisioner_userid }}
+  changed_when: true
+
+- name: Check if API token already exists
+  ansible.builtin.shell:
+    cmd: >
+      pveum user token list {{ provisioner_userid }} |
+      grep -q '{{ provisioner_token_name }}'
+  register: token_check
+  failed_when: false
+  changed_when: false
+
+- name: Create API token for provisioner user
+  ansible.builtin.command:
+    cmd: >
+      pveum user token add {{ provisioner_userid }} {{ provisioner_token_name }}
+      --privsep 0
+      --output-format json
+  register: token_creation
+  when: token_check.rc != 0
+  changed_when: true
+
+- name: Parse token creation output
+  ansible.builtin.set_fact:
+    api_token_info: "{{ token_creation.stdout | from_json }}"
+  when: token_check.rc != 0 and token_creation.stdout is defined
+
+- name: Extract token value
+  ansible.builtin.set_fact:
+    api_token_value: "{{ api_token_info.value }}"
+  when: token_check.rc != 0 and api_token_info is defined
+
+- name: Create local directory for token storage
+  ansible.builtin.file:
+    path: "{{ token_storage_dir }}"
+    state: directory
+    mode: '0700'
+  delegate_to: localhost
+  become: false
+  when: token_check.rc != 0
+
+- name: Save API token to local file
+  ansible.builtin.copy:
+    content: |
+      # Proxmox API Token for {{ provisioner_userid }}
+      # Token ID: {{ provisioner_token_id }}
+      # Created: {{ ansible_date_time.iso8601 }}
+
+      PROXMOX_TOKEN_ID="{{ provisioner_token_id }}"
+      PROXMOX_TOKEN_SECRET="{{ api_token_value }}"
+
+      # Use these values in your Packer and Terraform configurations
+    dest: "{{ token_storage_file }}"
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+  when: token_check.rc != 0 and api_token_value is defined
+
+- name: Display token information
+  ansible.builtin.debug:
+    msg:
+      - "Provisioner user created successfully!"
+      - "User ID: {{ provisioner_userid }}"
+      - "Token ID: {{ provisioner_token_id }}"
+      - "Token saved to: {{ token_storage_file }}"
+  when: token_check.rc != 0
+
+- name: Display token already exists message
+  ansible.builtin.debug:
+    msg:
+      - "API token '{{ provisioner_token_name }}' already exists for
+        user {{ provisioner_userid }}"
+      - "Token ID: {{ provisioner_token_id }}"
+      - "If you need a new token, delete the existing one first with:"
+      - "pveum user token remove {{ provisioner_userid }}
+        {{ provisioner_token_name }}"
+  when: token_check.rc == 0
