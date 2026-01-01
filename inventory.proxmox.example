@@ -1,0 +1,13 @@
+# Example inventory file for Proxmox server
+# Copy this file and customize it for your environment
+
+[proxmox:vars]
+ansible_user=root
+ansible_become=yes
+ansible_become_method=sudo
+
+[proxmox]
+# Replace with your Proxmox server IP or hostname
+# Example:
+# proxmox-01 ansible_host=192.168.1.100
+# proxmox.example.com ansible_host=10.0.0.50
