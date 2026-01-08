@@ -42,7 +42,6 @@ provisioner_privileges:
   - "VM.Config.Memory"
   - "VM.Config.Network"
   - "VM.Config.Options"
-  - "VM.Monitor"
   - "VM.Audit"
   - "VM.PowerMgmt"
   - "Datastore.AllocateSpace"

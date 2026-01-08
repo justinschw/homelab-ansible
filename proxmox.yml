@@ -3,6 +3,5 @@
 
 - name: Configure Proxmox provisioner user for Packer/Terraform
   hosts: proxmox
-  become: yes
   roles:
     - provisioner

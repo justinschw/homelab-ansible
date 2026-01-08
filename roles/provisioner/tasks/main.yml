@@ -15,10 +15,10 @@
     - "'already exists' not in user_creation.stderr"
   changed_when: user_creation.rc == 0
 
-- name: Create PVEVMAdmin role if it doesn't exist
+- name: Create VMAdmin role if it doesn't exist
   ansible.builtin.command:
     cmd: >
-      pveum role add PVEVMAdmin
+      pveum role add VMAdmin
       -privs "{{ provisioner_privileges | join(',') }}"
   register: role_creation
   failed_when:
@@ -30,16 +30,16 @@
   ansible.builtin.shell:
     cmd: >
       pveum acl list / |
-      grep -q "{{ provisioner_userid }}.*PVEVMAdmin"
+      grep -q "{{ provisioner_userid }}.*VMAdmin"
   register: acl_check
   failed_when: false
   changed_when: false
 
-- name: Assign PVEVMAdmin role to provisioner user on / path
+- name: Assign VMAdmin role to provisioner user on / path
   ansible.builtin.command:
     cmd: >
       pveum acl modify /
-      --roles PVEVMAdmin
+      --roles VMAdmin
       --users {{ provisioner_userid }}
   when: acl_check.rc != 0
   changed_when: true
@@ -118,3 +118,9 @@
       - "pveum user token remove {{ provisioner_userid }}
         {{ provisioner_token_name }}"
   when: token_check.rc == 0
+
+- name: Install python3-proxmoxer on target host
+  ansible.builtin.package:
+    name: python3-proxmoxer
+    state: present
+    update_cache: true
