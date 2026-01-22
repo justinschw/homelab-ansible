@@ -47,6 +47,7 @@ provisioner_privileges:
   - "VM.PowerMgmt"
   - "VM.GuestAgent.Audit"
   - "VM.GuestAgent.Unrestricted"
+  - "Datastore.Allocate"
   - "Datastore.AllocateSpace"
   - "Datastore.AllocateTemplate"
   - "Datastore.Audit"
