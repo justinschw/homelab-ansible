@@ -124,3 +124,9 @@
     name: python3-proxmoxer
     state: present
     update_cache: true
+
+- name: Create provisioner files directory
+  ansible.builtin.file:
+    path: "{{ provisioner_files_path }}"
+    state: directory
+    mode: '0755'

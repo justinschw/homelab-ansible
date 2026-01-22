@@ -25,6 +25,9 @@ token_storage_file: "{{ token_storage_dir }}/provisioner_token"
 # Proxmox user comment
 provisioner_comment: "Automation user for Packer and Terraform"
 
+# Proxmox files path
+provisioner_files_path: "/var/lib/vz/snippets/"
+
 # User password (optional - tokens are preferred for API access)
 # Leave empty to disable password authentication
 provisioner_password: ""
