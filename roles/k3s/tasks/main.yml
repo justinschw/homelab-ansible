@@ -68,7 +68,7 @@
   ansible.builtin.set_fact:
     k3s_server_url: "https://{{ master_hostname }}:6443"
     k3s_token: "{{ (k3s_token_raw.content | b64decode).strip() }}"
-  cacheable: yes
+    cacheable: yes
   run_once: true
   delegate_to: "{{ groups['masters'][0] }}"
   when: is_master | default(false)
@@ -82,7 +82,7 @@
 - name: Set `k3s_kubeconfig` fact (cacheable)
   ansible.builtin.set_fact:
     k3s_kubeconfig: "{{ k3s_kubeconfig_raw.content | b64decode }}"
-  cacheable: yes
+    cacheable: yes
   run_once: true
   delegate_to: "{{ groups['masters'][0] }}"
   when: is_master | default(false)
