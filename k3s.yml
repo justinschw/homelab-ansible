@@ -1,9 +1,4 @@
 ---
-- hosts: all
-  become: yes
-  roles:
-    - hardening
-
 - hosts: masters
   become: yes
   vars:
