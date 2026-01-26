@@ -20,6 +20,7 @@
   shell: >
     INSTALL_K3S_EXEC='server --bind-address {{ listenAddress }}
     --advertise-address {{ master_internal_ip | split('/') | first }}
+    --write-kubeconfig-server https://{{ master_hostname }}:6443
     --node-name {{ inventory_hostname }}
     --node-ip {{ master_internal_ip | split('/') | first }}
     --tls-san {{ master_hostname }}
