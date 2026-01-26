@@ -12,7 +12,6 @@
     permanent: true
     state: enabled
 
-
 - name: Reload firewalld
   ansible.builtin.service:
     name: firewalld
@@ -20,8 +19,8 @@
 
 - name: Check if kubectl is installed
   stat:
-    path: /usr/local/bin/kubectl
-  register: kubectl_exe
+    path: /usr/local/bin/k3s
+  register: k3s_exe
 
 - name: Install curl
   ansible.builtin.package:
@@ -34,29 +33,56 @@
     url: https://get.k3s.io
     dest: /tmp/k3s-install.sh
     mode: u=xwr,g=xr,o=xr
-  when: kubectl_exe.stat.exists == False
+  when: k3s_exe.stat.exists == False
 
-- name: Run install script
-  shell: "INSTALL_K3S_EXEC='server --bind-address {{ assignedMgmtIp }} --advertise-address {{ assignedMgmtIp }} --node-name {{ assignedHostname }} --node-ip {{ assignedMgmtIp }} --node-external-ip {{ assignedMgmtIp }} --tls-san {{ assignedMgmtIp }} --cluster-init' /tmp/k3s-install.sh || true"
-  when: kubectl_exe.stat.exists == False
+- name: Install as server (master)
+  shell: >
+    INSTALL_K3S_EXEC='server --bind-address {{ listenAddress }}
+    --advertise-address {{ master_internal_ip | split('/') | first }}
+    --node-name {{ inventory_hostname }}
+    --node-ip {{ master_internal_ip | split('/') | first }}
+    --tls-san {{ master_hostname }}
+    --cluster-init' /tmp/k3s-install.sh || true
+  when: (is_master | default(false)) and k3s_exe.stat.exists == False
 
-- name: create kubeconfig dir for default user
-  file:
-    path: /home/{{ defaultUser }}/.kube
-    state: directory
+- name: Fail if worker lacks server info
+  ansible.builtin.fail:
+    msg: "k3s_server_url and k3s_token must be set for worker nodes"
+  when: not (is_master | default(false)) and (k3s_server_url is not defined or k3s_token is not defined)
 
-- name: Setup kubeconfig for default user
-  shell: "cp /etc/rancher/k3s/k3s.yaml /home/{{ defaultUser }}/.kube/config"
+- name: Install as agent (worker)
+  shell: >
+    INSTALL_K3S_EXEC='agent --server {{ k3s_server_url }}
+    --token {{ k3s_token }}
+    --node-name {{ inventory_hostname }}
+    --node-external-ip {{ master_internal_ip | split('/') | first }}' /tmp/k3s-install.sh || true
+  when: not (is_master | default(false)) and k3s_exe.stat.exists == False
 
-- name: Change file ownership, group and permissions
-  ansible.builtin.file:
-    path: /home/{{ defaultUser }}/.kube/config
-    owner: "{{ defaultUser }}"
-    group: "{{ defaultUser }}"
-    mode: 'u=rw'
+- name: Read k3s node token (server)
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: k3s_token_raw
+  when: is_master | default(false)
 
-- name: Set KUBECONFIG for default user
-  lineinfile:
-    path: /home/{{ defaultUser }}/.bashrc
-    line: "export KUBECONFIG=$HOME/.kube/config"
-    state: present
+- name: Set `k3s_server_url` and `k3s_token` facts (cacheable)
+  ansible.builtin.set_fact:
+    k3s_server_url: "https://{{ master_hostname }}:6443"
+    k3s_token: "{{ (k3s_token_raw.content | b64decode).strip() }}"
+  cacheable: yes
+  run_once: true
+  delegate_to: "{{ groups['masters'][0] }}"
+  when: is_master | default(false)
+
+- name: Read kube config
+  ansible.builtin.slurp:
+    src: /etc/rancher/k3s/k3s.yaml
+  register: k3s_kubeconfig_raw
+  when: is_master | default(false)
+
+- name: Set `k3s_kubeconfig` fact (cacheable)
+  ansible.builtin.set_fact:
+    k3s_kubeconfig: "{{ k3s_kubeconfig_raw.content | b64decode }}"
+  cacheable: yes
+  run_once: true
+  delegate_to: "{{ groups['masters'][0] }}"
+  when: is_master | default(false)
