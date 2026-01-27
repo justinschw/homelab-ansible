@@ -1,3 +1,4 @@
 ---
 listenAddress: "0.0.0.0"
 kubeConfigPath: "/etc/rancher/k3s/k3s.yaml"
+s3_validate_certs: false

@@ -84,4 +84,5 @@
     object: "{{ cluster_name }}/kubeconfig.yaml"
     mode: put
     content: "{{ k3s_kubeconfig }}"
+    validate_certs: "{{ s3_validate_certs }}"
   when: is_master | default(false)
