@@ -20,7 +20,6 @@
   shell: >
     INSTALL_K3S_EXEC='server --bind-address {{ listenAddress }}
     --advertise-address {{ master_internal_ip | split('/') | first }}
-    --write-kubeconfig-server https://{{ master_hostname }}:6443
     --node-name {{ inventory_hostname }}
     --node-ip {{ master_internal_ip | split('/') | first }}
     --tls-san {{ master_hostname }}
@@ -55,9 +54,15 @@
   delegate_to: "{{ groups['masters'][0] }}"
   when: is_master | default(false)
 
+- name: Update kubeconfig with correct server address
+  ansible.builtin.command:
+    cmd: >
+      sed -i 's/https:\/\/[0-9a-zA-Z\.-]*:6443/{{ k3s_server_url }}/g' {{ kubeConfigPath }}
+  when: is_master | default(false)
+
 - name: Read kube config
   ansible.builtin.slurp:
-    src: /etc/rancher/k3s/k3s.yaml
+    src: "{{ kubeConfigPath }}"
   register: k3s_kubeconfig_raw
   when: is_master | default(false)
 
@@ -67,4 +72,17 @@
     cacheable: yes
   run_once: true
   delegate_to: "{{ groups['masters'][0] }}"
+  when: is_master | default(false)
+
+- name: Upload kubeconfig to S3
+  aws_s3:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    s3_url: "{{ aws_s3_endpoint_url }}"
+    region: "{{ aws_region }}"
+    bucket: "{{ s3_bucket_name }}"
+    object: "{{ cluster_name }}/kubeconfig.yaml"
+    mode: put
+    content: "{{ k3s_kubeconfig }}"
+    acl: private
   when: is_master | default(false)
