@@ -57,7 +57,7 @@
 - name: Update kubeconfig with correct server address
   ansible.builtin.command:
     cmd: >
-      sed -i 's/https:\/\/[0-9a-zA-Z\.-]*:6443/{{ k3s_server_url }}/g' {{ kubeConfigPath }}
+      sed -i 's|https://[0-9a-zA-Z.-]*:6443|{{ k3s_server_url }}|g' {{ kubeConfigPath }}
   when: is_master | default(false)
 
 - name: Read kube config
