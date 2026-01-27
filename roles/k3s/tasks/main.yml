@@ -78,11 +78,10 @@
   aws_s3:
     aws_access_key: "{{ s3_access_key }}"
     aws_secret_key: "{{ s3_secret_key }}"
-    s3_url: "{{ s3_endpoint }}"
+    endpoint_url: "{{ s3_endpoint }}"
     region: "{{ s3_region }}"
     bucket: "{{ s3_bucket_name }}"
     object: "{{ cluster_name }}/kubeconfig.yaml"
     mode: put
     content: "{{ k3s_kubeconfig }}"
-    acl: private
   when: is_master | default(false)
