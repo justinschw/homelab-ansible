@@ -76,10 +76,10 @@
 
 - name: Upload kubeconfig to S3
   aws_s3:
-    aws_access_key: "{{ aws_access_key }}"
-    aws_secret_key: "{{ aws_secret_key }}"
-    s3_url: "{{ aws_s3_endpoint_url }}"
-    region: "{{ aws_region }}"
+    aws_access_key: "{{ s3_access_key }}"
+    aws_secret_key: "{{ s3_secret_key }}"
+    s3_url: "{{ s3_endpoint }}"
+    region: "{{ s3_region }}"
     bucket: "{{ s3_bucket_name }}"
     object: "{{ cluster_name }}/kubeconfig.yaml"
     mode: put
