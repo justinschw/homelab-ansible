@@ -19,6 +19,7 @@
 - name: Install as server (master)
   shell: >
     INSTALL_K3S_EXEC='server --bind-address {{ listenAddress }}
+    --disable traefik
     --advertise-address {{ master_internal_ip | split('/') | first }}
     --node-name {{ inventory_hostname }}
     --node-ip {{ master_internal_ip | split('/') | first }}
@@ -34,6 +35,7 @@
 - name: Install as agent (worker)
   shell: >
     INSTALL_K3S_EXEC='agent --server {{ k3s_server_url }}
+    --disable traefik
     --token {{ k3s_token }}
     --node-name {{ inventory_hostname }}
     --node-external-ip {{ master_internal_ip | split('/') | first }}' /tmp/k3s-install.sh || true
