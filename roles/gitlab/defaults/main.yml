@@ -1,0 +1,4 @@
+---
+# Default variables for gitlab role
+# Set to a valid URL if you want the role to configure GitLab's external_url
+gitlab_external_url: ""

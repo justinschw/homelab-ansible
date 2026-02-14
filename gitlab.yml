@@ -1,0 +1,6 @@
+---
+- name: Install GitLab CE
+  hosts: all
+  become: true
+  roles:
+    - gitlab

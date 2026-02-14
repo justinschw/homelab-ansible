@@ -1,0 +1,21 @@
+---
+- name: Check if gitlab-ce is installed
+  ansible.builtin.shell: dpkg -s gitlab-ce >/dev/null 2>&1
+  register: gitlab_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Add GitLab CE apt repository script
+  ansible.builtin.shell: curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | bash
+  args:
+    warn: false
+  become: true
+  when: gitlab_check.rc != 0
+
+- name: Install gitlab-ce package
+  ansible.builtin.apt:
+    name: gitlab-ce
+    state: present
+    update_cache: yes
+  become: true
+  when: gitlab_check.rc != 0
