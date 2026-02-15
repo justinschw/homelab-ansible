@@ -6,9 +6,15 @@
   changed_when: false
 
 - name: Add GitLab CE apt repository script
-  ansible.builtin.shell: curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | bash
-  args:
-    warn: false
+  ansible.builtin.get_url:
+    url: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh
+    dest: /tmp/gitlab_script.deb.sh
+    mode: '0755'
+  become: true
+  when: gitlab_check.rc != 0
+
+- name: Run GitLab CE repository script
+  ansible.builtin.shell: /tmp/gitlab_script.deb.sh
   become: true
   when: gitlab_check.rc != 0
 
